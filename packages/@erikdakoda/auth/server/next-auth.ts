@@ -1,12 +1,10 @@
-// ** Prisma
-import { extendedPrisma } from '@erikdakoda/database/server/extendedPrisma';
-import { type PrismaClient, type Space, SpaceUserRole } from '@erikdakoda/database';
+import { authDb, db } from '@erikdakoda/database/server/db';
+import { type Space, SpaceUserRole } from '@erikdakoda/database';
+import type { AuthDbClient } from '@erikdakoda/database/server/db';
 
 // ** NextAuth
 import type { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import GitHubProvider from 'next-auth/providers/github';
 import authConfig from '../config';
 
 // ** Utilities
@@ -34,11 +32,9 @@ const userSelect = {
       role: true,
     },
   },
-};
+} as const;
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(extendedPrisma),
-
   session: {
     strategy: 'jwt',
   },
@@ -57,21 +53,13 @@ export const authOptions: NextAuthOptions = {
           type: 'password',
         },
       },
-      // @ts-ignore
-      authorize: authorize(extendedPrisma),
-    }),
-
-    GitHubProvider({
-      clientId: process.env.GITHUB_ID || '',
-      clientSecret: process.env.GITHUB_SECRET || '',
-      // @ts-ignore
-      scope: 'read:user,user:email',
+      authorize: authorize(authDb),
     }),
   ],
 
   callbacks: {
     async session({ session, token }) {
-      const user = await extendedPrisma.user.findUnique({
+      const user = await authDb.user.findUnique({
         where: {
           id: token.sub,
         },
@@ -93,14 +81,14 @@ export const authOptions: NextAuthOptions = {
       console.log('Signing in', user.email);
       let space: Space | null = null;
 
-      const spaceCount = await extendedPrisma.spaceUser.count({
+      const spaceCount = await db.spaceUser.count({
         where: {
           userId: user.id,
         },
       });
 
       if (spaceCount === 0) {
-        space = await extendedPrisma.space.create({
+        space = await db.space.create({
           data: {
             name: `${user?.name || user?.email?.split('@')[0]}’s space`,
             members: {
@@ -114,9 +102,12 @@ export const authOptions: NextAuthOptions = {
           },
         });
       } else {
-        // @ts-ignore
-        if (!user.activeSpaceId) {
-          const spaceUser = await extendedPrisma.spaceUser.findFirst({
+        const existingUser = await db.user.findUnique({
+          where: { id: user.id },
+          select: { activeSpaceId: true },
+        });
+        if (!existingUser?.activeSpaceId) {
+          const spaceUser = await db.spaceUser.findFirst({
             where: {
               userId: user.id,
             },
@@ -124,12 +115,12 @@ export const authOptions: NextAuthOptions = {
               space: true,
             },
           });
-          space = spaceUser?.space || null;
+          space = spaceUser?.space ?? null;
         }
       }
 
       if (space) {
-        await extendedPrisma.user.update({
+        await db.user.update({
           where: {
             id: user.id,
           },
@@ -142,7 +133,7 @@ export const authOptions: NextAuthOptions = {
   },
 };
 
-function authorize(extendedPrisma: PrismaClient) {
+function authorize(client: AuthDbClient) {
   return async (credentials: Record<'email' | 'password', string> | undefined) => {
     if (!credentials) {
       throw new Error('Missing credentials');
@@ -156,14 +147,14 @@ function authorize(extendedPrisma: PrismaClient) {
       throw new Error('"password" is required in credentials');
     }
 
-    const maybeUser = await extendedPrisma.user.findFirst({
+    const maybeUser = await client.user.findFirst({
       where: {
         email: credentials.email,
       },
       select: userSelect,
     });
 
-    if (!maybeUser || !maybeUser.password) {
+    if (!maybeUser?.password) {
       return null;
     }
 

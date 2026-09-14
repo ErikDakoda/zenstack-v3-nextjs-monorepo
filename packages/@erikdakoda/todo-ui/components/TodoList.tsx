@@ -1,11 +1,12 @@
 import { LockClosedIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { useDeleteList } from '@erikdakoda/database/hooks';
 import type { List, User, OwnedItem } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import { customAlphabet } from 'nanoid';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Avatar from '@erikdakoda/auth-ui/components/Avatar';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 import TimeInfo from './TimeInfo';
 
 type Props = {
@@ -15,8 +16,8 @@ type Props = {
 
 export default function TodoList({ value }: Props) {
   const router = useRouter();
-
-  const deleteList = useDeleteList().mutateAsync;
+  const client = useClientQueries(schema);
+  const deleteList = client.list.useDelete().mutateAsync;
 
   const onDeleteList = () => {
     if (confirm('Are you sure to delete this list?')) {

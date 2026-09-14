@@ -14,5 +14,5 @@
     "./global.d.ts",
     "../auth/next-auth.d.ts"
   ],
-  "exclude": ["node_modules", "hooks", "zod", "prisma"]
+  "exclude": ["node_modules"]
 }

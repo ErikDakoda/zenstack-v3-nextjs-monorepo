@@ -1,6 +1,6 @@
 <div align="center">
     <img src="https://github.com/zenstackhq/sample-todo-sveltekit/assets/16688722/df13f0ee-1d56-4a13-9a55-39e8779c6d9f" height="256">
-    <h1>ZenStack Monorepo Demo</h1>
+    <h1>ZenStack v3 Monorepo Demo</h1>
     <a href="https://twitter.com/intent/tweet?text=Wow%20%40zenstackhq">
         <img src="https://img.shields.io/twitter/url?style=social&url=https%3A%2F%2Fgithub.com%2Fzenstackhq%2Fzenstack">
     </a>
@@ -9,11 +9,11 @@
     </a>
 </div>
 
-# A Collaborative Todo Sample - ZenStack + Next.js using PNPM + Turborepo
+# A Collaborative Todo Sample - ZenStack v3 + Next.js using PNPM + Turborepo
 
-This project is a collaborative Todo app built with [Next.js](https://nextjs.org), [Next-Auth](nextauth.org), [ZenStack](https://zenstack.dev), [Tanstack Query](https://tanstack.com/query/latest/docs/framework/react), [Zod](https://zod.dev/), and [Tailwind CSS](https://tailwindcss.com). It's purpose is to test and demonstrate the usage of Prisma and ZenStack in a monorepo setup. All apps and packages are 100% TypeScript and configured as ES Modules.
+This project is a collaborative Todo app built with [Next.js](https://nextjs.org), [Next-Auth](nextauth.org), [ZenStack](https://zenstack.dev) 3.x, [Tanstack Query](https://tanstack.com/query/latest/docs/framework/react), and [Tailwind CSS](https://tailwindcss.com). It's purpose is to test and demonstrate the usage of ZenStack v3 in a monorepo setup. All apps and packages are 100% TypeScript and configured as ES Modules.
 
-In this fictitious app, users can be invited to workspaces where they can collaborate on todos. Public todo lists are visible to all members in the workspace. Password authentication is implemented using ZenStack and NextAuth.
+In this fictitious app, users can be invited to workspaces where they can collaborate on todos. Public todo lists are visible to all members in the workspace. Password authentication is implemented with a ZenStack `signUp` procedure, bcrypt hashing, and NextAuth credentials login.
 
 > [!TIP]
 > See a live deployment at: <https://sample-todo-nextjs-turbo.vercel.app>.
@@ -30,11 +30,11 @@ In this fictitious app, users can be invited to workspaces where they can collab
 
   - `@erikdakoda`
 
-    - `auth`: NextAuth configuration; Models for User, Account, Space, and SpaceUser; OwnedItem polymorphic base model declaring created dates, owner, and space
+    - `auth`: NextAuth configuration; Models for User, Space, and SpaceUser; OwnedItem polymorphic base model declaring created dates, owner, and space
 
     - `auth-ui`: React user context and auth components
 
-    - `database`: Prisma Client and schema; ZenStack generates Tanstack Query hooks, Prisma client, and Zod schemas here
+    - `database`: ZenStack schema and generated client; Kysely + PostgreSQL runtime; policy plugin and RPC server helpers
 
     - `todo`: Models for Todo, and List
 
@@ -44,31 +44,31 @@ In this fictitious app, users can be invited to workspaces where they can collab
 
 ## Implementation
 
-- The `@erikdakoda/database` package implements Prisma and ZenStack.
+- The `@erikdakoda/database` package implements ZenStack v3.
 
   - The data client is configured in `schema.zmodel` in this package, while the models for individual entities reside in their various packages.
 
-  - The Prisma Client is generated in the `prisma` folder and then exported from the package.
+  - `zen generate --lite` emits `schema.ts`, `schema-lite.ts`, `models.ts`, and `input.ts` into the git-ignored `zenstack/` folder.
 
-  - [Tanstack Query](https://tanstack.com/query/latest/docs/framework/react) React [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) hooks are generated in the `hooks` folder.
+  - Client components call `useClientQueries(schema)` from `@zenstackhq/tanstack-query/react` with `schema` imported from `@erikdakoda/database/zenstack/schema-lite`.
 
-  - [Zod](https://zod.dev/) schemas are generated in the `zod` folder and are used by ZenStack to validate CRUD operations. You can also use them in conjunction with [React Hook Form](https://react-hook-form.com/) to validate forms.
+- An automatic RPC API is mounted at `/api/model` in `apps/todo/pages/api/model/[...path].ts`.
 
-- An automatic RESTful API is mounted at `/api/model` in `apps/todo/pages/api/model/[...path].ts`.
+- On the server side always import the database client from the database package.
 
-- On the server side always import the Prisma Client from the database package.
+  - In API routes and `getServerSideProps()` use `getEnhancedDb()` to get a ZenStack client with the policy plugin and the signed-in user bound via `$setAuth`. Permissions with the credentials of the currently signed-in user will be enforced. See `apps/todo/src/pages/index.tsx` for an example.
 
-  - In API routes and `getServerSideProps()` use `getEnhancedPrisma()` to get a Prisma Client with extensions and ZenStack enhancements enabled. Permissions with the credentials of the currently signed-in user will be enforced. See `apps/todo/src/pages/index.tsx` for an example.
+  - For NextAuth credential verification, `authDb` is the same underlying client with `omit: { user: { password: false } }` so the password hash can be read despite `@omit` on the field.
 
-  - In server code where the context is not available and/or you need to execute administrative tasks, use `import { adminEnhancedPrisma } from '@erikdakoda/database/server/adminEnhancedPrisma'` to get a Prisma Client with extensions and ZenStack enhancements enabled. This Prisma Client impersonates an administrator.
+  - For administrative or bootstrap tasks without a request context, use the unrestricted `db` export from `@erikdakoda/database/server/db`.
 
-  - There is a mechanism for packages to register [Prisma Client extensions](https://www.prisma.io/docs/orm/prisma-client/client-extensions) but it is not yet documented. In the meantime see `@erikdakoda/database/server/prismaExtensions.ts` for a minimal example.
+  - ZenStack v3 plugins (`db.$use(...)`) replace the old Prisma client extension registry.
 
 ## Running the sample
 
 1. Setup a database
 
-   Rename `apps/todo/.env.example` to `.env`. For testing purposes, you can use the sample database provided. This database may be reset periodically.
+   Create `apps/todo/.env` with at least `POSTGRES_URL_NON_POOLING`, `NEXTAUTH_SECRET`, and `NEXTAUTH_URL`. For testing purposes, you can use the sample database provided. This database may be reset periodically.
 
 2. Install dependencies
 
@@ -85,7 +85,7 @@ In this fictitious app, users can be invited to workspaces where they can collab
 4. Synchronize database schema
 
    ```bash
-   pnpm run prisma:push
+   pnpm run db:push
    ```
 
 5. Start dev server
@@ -98,15 +98,13 @@ In this fictitious app, users can be invited to workspaces where they can collab
 
 ## Gotchas
 
-While converting my Prisma/ZenStack project to a monorepo, I learned the following:
+While converting this project to ZenStack v3 in a monorepo, I learned the following:
 
-- I had to add `public-hoist-pattern[]='*'` to `.npmrc`. I tried just adding `*prisma*` and `*zenstack*` but I kept getting broken builds. This can probably be fine tuned with more patience.
+- I had to add `public-hoist-pattern[]='*'` to `.npmrc`. I tried just adding `*zenstack*` but I kept getting broken builds. This can probably be fine tuned with more patience.
 
-- I had to add `@prisma/nextjs-monorepo-workaround-plugin` to `next.config.js`
+- I had to add my packages to `transpilePackages` in `next.config.js` or strange things started happening.
 
-- I had to use the `serverComponentsExternalPackages` experimental option for `@zenstackhq/runtime` in `next.config.js`
-
-- I had to add my packages to `transpilePackages` in `next.config.json` or stange things started happening.
+- `@omit` on `User.password` is enforced in the base client; only `authDb` opts the hash back in for NextAuth.
 
 ## Using Turborepo
 

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf .next/ .turbo/ node_modules/",
-    "lint": "eslint .",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --no-error-on-unmatched-pattern",
     "format": "prettier --write .",
     "ts:check": "tsc",
     "npm:version": "npm version --allow-same-version"

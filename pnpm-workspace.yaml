@@ -3,9 +3,5 @@ packages:
   - packages/@erikdakoda/*
   - packages/default-configs
 onlyBuiltDependencies:
-  - '@prisma/client'
-  - '@prisma/engines'
   - esbuild
-  - prisma
   - sharp
-  - zenstack

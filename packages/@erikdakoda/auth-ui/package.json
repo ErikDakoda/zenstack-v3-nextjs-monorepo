@@ -5,19 +5,27 @@
   "main": "./index.ts",
   "types": "./index.ts",
   "scripts": {
-    "clean": "rm -rf .next/ .turbo/ node_modules/ hooks prisma zod",
-    "lint": "eslint .",
+    "clean": "rm -rf .next/ .turbo/ node_modules/",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "format": "prettier --write .",
     "ts:check": "tsc",
     "npm:version": "npm version --allow-same-version"
   },
   "dependencies": {
+    "@erikdakoda/database": "workspace:*",
+    "@tanstack/react-query": "5.74.9",
+    "@zenstackhq/tanstack-query": "3.9.4",
     "next": "15.3.8",
+    "next-auth": "4.24.11",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "react-toastify": "10.0.6"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "8.32.1",
+    "@typescript-eslint/parser": "8.32.1",
     "default-configs": "workspace:*",
+    "eslint": "8.57.1",
     "prettier": "3.5.3",
     "typescript": "5.8.3"
   }

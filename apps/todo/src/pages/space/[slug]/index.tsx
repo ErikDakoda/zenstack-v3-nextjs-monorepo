@@ -1,5 +1,5 @@
-import { useCreateList, useFindManyList } from '@erikdakoda/database/hooks';
 import type { List, Space, User, OwnedItem } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import BreadCrumb from '@/components/BreadCrumb';
 import SpaceMembers from '@erikdakoda/auth-ui/components/SpaceMembers';
 import TodoList from '@erikdakoda/todo-ui/components/TodoList';
@@ -8,25 +8,24 @@ import type { GetServerSideProps } from 'next';
 import { useRouter } from 'next/router';
 import { type ChangeEvent, type FormEvent, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
-import { getEnhancedPrisma } from '@erikdakoda/database/server/getEnhancedPrisma';
+import { getEnhancedDb } from '@erikdakoda/database/server/getEnhancedDb';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 
 function CreateDialog() {
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [_private, setPrivate] = useState(false);
+  const client = useClientQueries(schema);
 
-  const createList = useCreateList({
+  const createList = client.list.useCreate({
     onSuccess: () => {
       toast.success('List created successfully!');
 
-      // reset states
       setTitle('');
       setPrivate(false);
-
-      // close modal
       setModalOpen(false);
     },
-  }).mutateAsync;
+  });
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +38,7 @@ function CreateDialog() {
   const onSubmit = (event: FormEvent) => {
     event.preventDefault();
 
-    void createList({
+    void createList.mutateAsync({
       data: {
         title,
         private: _private,
@@ -110,8 +109,9 @@ type Props = {
 
 export default function SpaceHome(props: Props) {
   const router = useRouter();
+  const client = useClientQueries(schema);
 
-  const { data: lists } = useFindManyList(
+  const { data: lists } = client.list.useFindMany(
     {
       where: {
         space: {
@@ -158,7 +158,7 @@ export default function SpaceHome(props: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async ({ req, res, params }) => {
-  const db = await getEnhancedPrisma({ req, res });
+  const db = await getEnhancedDb({ req, res });
 
   const space = await db.space.findUnique({
     where: { slug: params!.slug as string },

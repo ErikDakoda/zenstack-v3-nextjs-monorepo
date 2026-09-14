@@ -5,13 +5,20 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf .next/ .turbo/ node_modules/",
-    "lint": "eslint .",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "format": "prettier --write .",
     "ts:check": "tsc",
     "npm:version": "npm version --allow-same-version"
   },
   "dependencies": {
-    "moment": "2.30.1"
+    "@erikdakoda/database": "workspace:*",
+    "@heroicons/react": "2.2.0",
+    "@tanstack/react-query": "5.74.9",
+    "@zenstackhq/tanstack-query": "3.9.4",
+    "moment": "2.30.1",
+    "nanoid": "5.1.5",
+    "next": "15.3.8",
+    "react": "18.3.1"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.3.2",

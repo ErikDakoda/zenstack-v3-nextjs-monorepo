@@ -4,7 +4,7 @@ import Spaces from '@erikdakoda/auth-ui/components/Spaces';
 import WithNavBar from '@/components/WithNavBar';
 import type { GetServerSideProps, NextPage } from 'next';
 import Link from 'next/link';
-import { getEnhancedPrisma } from '@erikdakoda/database/server/getEnhancedPrisma';
+import { getEnhancedDb } from '@erikdakoda/database/server/getEnhancedDb';
 
 type Props = {
   spaces: Space[];
@@ -19,7 +19,7 @@ const Home: NextPage<Props> = ({ spaces }) => {
         <div className="mt-8 text-center flex flex-col items-center w-full">
           <h1 className="text-2xl text-gray-800">Welcome {user.name || user.email}!</h1>
           <h3>
-            {user.id} - {user.email} - {user.password}
+            {user.id} - {user.email}
           </h3>
 
           <div className="w-full p-8">
@@ -38,7 +38,7 @@ const Home: NextPage<Props> = ({ spaces }) => {
 };
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const db = await getEnhancedPrisma(ctx);
+  const db = await getEnhancedDb(ctx);
   const spaces = await db.space.findMany();
   return {
     props: { spaces },

@@ -1,8 +1,9 @@
 import type { Space, User } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { createContext } from 'react';
-import { useFindManySpace } from '@erikdakoda/database/hooks';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 
 export type UserContextType = {
   user: User | undefined;
@@ -31,7 +32,8 @@ export const SpaceContext = createContext<Space | undefined>(undefined);
 
 export function useCurrentSpace() {
   const router = useRouter();
-  const { data: spaces } = useFindManySpace({
+  const client = useClientQueries(schema);
+  const { data: spaces } = client.space.useFindMany({
     where: {
       slug: router.query.slug as string,
     },

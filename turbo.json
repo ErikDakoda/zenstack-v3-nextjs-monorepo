@@ -7,7 +7,7 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "build": {
-      "dependsOn": ["prisma:push", "^build"],
+      "dependsOn": ["db:push", "^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
@@ -16,14 +16,11 @@
       "persistent": true
     },
     "zen:generate": {
-      "inputs": ["schema.zmodel"],
+      "inputs": ["schema.zmodel", "../*/**/*.zmodel"],
       "cache": false
     },
-    "prisma:push": {
+    "db:push": {
       "dependsOn": ["zen:generate"],
-      "cache": false
-    },
-    "prisma:deploy": {
       "cache": false
     },
     "clean": { "cache": false },

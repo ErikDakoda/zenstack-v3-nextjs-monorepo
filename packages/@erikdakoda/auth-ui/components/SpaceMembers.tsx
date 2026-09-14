@@ -1,7 +1,8 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useCurrentSpace } from '../context';
-import { useFindManySpaceUser } from '@erikdakoda/database/hooks';
 import type { Space } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 import Avatar from './Avatar';
 import ManageMembers from './ManageMembers';
 
@@ -35,8 +36,9 @@ function ManagementDialog(space?: Space) {
 
 export default function SpaceMembers() {
   const space = useCurrentSpace();
+  const client = useClientQueries(schema);
 
-  const { data: members } = useFindManySpaceUser({
+  const { data: members } = client.spaceUser.useFindMany({
     where: {
       spaceId: space?.id,
     },

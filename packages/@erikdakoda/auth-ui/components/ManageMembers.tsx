@@ -1,28 +1,46 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useCurrentUser } from '../context';
-import {
-  useCreateSpaceUser,
-  useDeleteSpaceUser,
-  useFindManySpaceUser,
-} from '@erikdakoda/database/hooks';
 import { type Space, SpaceUserRole } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 import Avatar from './Avatar';
 
 type Props = {
   space: Space;
 };
 
+function isUniqueConstraintError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'info' in err &&
+    (err as { info?: { reason?: string; dbErrorCode?: string } }).info?.reason ===
+      'DB_QUERY_ERROR' &&
+    (err as { info?: { dbErrorCode?: string } }).info?.dbErrorCode === '23505'
+  );
+}
+
+function isNotFoundError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'info' in err &&
+    (err as { info?: { reason?: string } }).info?.reason === 'NOT_FOUND'
+  );
+}
+
 export default function ManageMembers({ space }: Props) {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<SpaceUserRole>(SpaceUserRole.USER);
   const { user } = useCurrentUser();
-  const createSpaceUser = useCreateSpaceUser().mutateAsync;
-  const deleteSpaceUser = useDeleteSpaceUser().mutateAsync;
+  const client = useClientQueries(schema);
+  const createSpaceUser = client.spaceUser.useCreate().mutateAsync;
+  const deleteSpaceUser = client.spaceUser.useDelete().mutateAsync;
 
-  const { data: members } = useFindManySpaceUser({
+  const { data: members } = client.spaceUser.useFindMany({
     where: {
       spaceId: space.id,
     },
@@ -52,17 +70,12 @@ export default function ManageMembers({ space }: Props) {
         },
       });
       console.log('SpaceUser created:', r);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      if (err.info?.prisma === true) {
-        if (err.info.code === 'P2002') {
-          toast.error('User is already a member of the space');
-        } else if (err.info.code === 'P2025') {
-          toast.error('User is not found for this email');
-        } else {
-          toast.error(`Unexpected Prisma error: ${err.info.code}`);
-        }
+      if (isUniqueConstraintError(err)) {
+        toast.error('User is already a member of the space');
+      } else if (isNotFoundError(err)) {
+        toast.error('User is not found for this email');
       } else {
         toast.error(`Error occurred: ${JSON.stringify(err)}`);
       }

@@ -19,6 +19,7 @@ module.exports = {
     'react/prop-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/consistent-type-imports': 'error',
+    '@typescript-eslint/no-unused-expressions': 'off',
     '@next/next/no-img-element': 'off',
     '@next/next/no-html-link-for-pages': 'off',
     'jsdoc/require-jsdoc': 0,

@@ -1,8 +1,9 @@
 import { TrashIcon } from '@heroicons/react/24/outline';
-import { useDeleteTodo, useUpdateTodo } from '@erikdakoda/database/hooks';
 import type { OwnedItem, Todo, User } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import type { ChangeEvent } from 'react';
 import Avatar from '@erikdakoda/auth-ui/components/Avatar';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 import TimeInfo from './TimeInfo';
 
 type Props = {
@@ -11,8 +12,9 @@ type Props = {
 };
 
 export default function TodoComponent({ value, optimistic }: Props) {
-  const updateTodo = useUpdateTodo().mutateAsync;
-  const deleteTodo = useDeleteTodo().mutateAsync;
+  const client = useClientQueries(schema);
+  const updateTodo = client.todo.useUpdate().mutateAsync;
+  const deleteTodo = client.todo.useDelete().mutateAsync;
 
   const onDeleteTodo = () => {
     void deleteTodo({ where: { id: value.id } });
@@ -54,7 +56,9 @@ export default function TodoComponent({ value, optimistic }: Props) {
               optimistic ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 cursor-pointer'
             }`}
             onClick={() => {
-              !optimistic && onDeleteTodo();
+              if (!optimistic) {
+                onDeleteTodo();
+              }
             }}
           />
         </div>

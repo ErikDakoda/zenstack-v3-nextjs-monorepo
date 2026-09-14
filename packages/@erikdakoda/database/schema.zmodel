@@ -1,33 +1,14 @@
-import "../auth/models/base"
+import "../auth/models/user"
 import "../todo/list"
 import "../todo/todo"
 
-generator js {
-  provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters", "fullTextSearch", "fullTextIndex"]
-  output   = "./client"
-}
-
 datasource db {
-  provider = "postgresql"
-  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
-  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+    provider = "postgresql"
+    url = env("POSTGRES_URL_NON_POOLING")
 }
 
-plugin prisma {
-    provider = '@core/prisma'
-    output = './prisma/schema.prisma'
-    format = true
+plugin policy {
+    provider = '@zenstackhq/plugin-policy'
 }
 
-plugin hooks {
-  provider = '@zenstackhq/tanstack-query'
-  output = "./hooks"
-  target = "react"
-}
-
-plugin zod {
-  provider = '@core/zod'
-  compile = false
-  output = "./zod"
-}
+mutation procedure signUp(email: String, password: String, name: String?): User

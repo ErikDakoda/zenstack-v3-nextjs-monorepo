@@ -1,13 +1,15 @@
-import { useCountList } from '@erikdakoda/database/hooks';
 import type { Space } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import Link from 'next/link';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 
 type Props = {
   spaces: Space[];
 };
 
 function SpaceItem({ space }: { space: Space }) {
-  const { data: listCount } = useCountList({
+  const client = useClientQueries(schema);
+  const { data: listCount } = client.list.useCount({
     where: { spaceId: space.id },
   });
   return (

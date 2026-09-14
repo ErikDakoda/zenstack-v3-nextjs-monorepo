@@ -1,4 +1,3 @@
-import "account"
 import "space"
 import "ownedItem"
 
@@ -19,14 +18,13 @@ model User {
     updatedAt     DateTime  @updatedAt
     email         String    @unique @email('Please enter a valid email address')
     emailVerified DateTime?
-    password      String?   @password @omit
+    password      String?   @omit
     name          String?
     image         String?   @url
     role          UserRole  @default(USER)
     activeSpaceId String?
 
     spaces        SpaceUser[]
-    accounts      Account[] // next-auth
     ownedItems    OwnedItem[]
 
     // can be created by anyone, even not logged in

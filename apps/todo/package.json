@@ -23,6 +23,7 @@
     "@tanstack/react-query": "5.74.9",
     "@tanstack/react-query-devtools": "5.74.9",
     "@vercel/analytics": "1.5.0",
+    "@zenstackhq/tanstack-query": "3.9.4",
     "babel-plugin-superjson-next": "0.4.5",
     "lodash": "4.17.21",
     "next": "15.3.8",
@@ -34,7 +35,6 @@
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.3.2",
-    "@prisma/nextjs-monorepo-workaround-plugin": "6.6.0",
     "@types/lodash": "4.17.16",
     "@types/node": "22.15.3",
     "@types/react": "18.3.20",

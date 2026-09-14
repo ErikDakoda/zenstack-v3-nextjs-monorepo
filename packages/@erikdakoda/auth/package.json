@@ -5,17 +5,21 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf .next/ .turbo/ node_modules/",
-    "lint": "eslint .",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "format": "prettier --write .",
     "ts:check": "tsc",
     "npm:version": "npm version --allow-same-version"
   },
   "dependencies": {
-    "@next-auth/prisma-adapter": "1.0.7",
+    "@erikdakoda/database": "workspace:*",
+    "bcryptjs": "2.4.3",
+    "lodash": "4.17.21",
     "next-auth": "4.24.11"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.3.2",
+    "@types/bcryptjs": "2.4.6",
+    "@types/lodash": "4.17.16",
     "@typescript-eslint/eslint-plugin": "8.32.1",
     "@typescript-eslint/parser": "8.32.1",
     "default-configs": "workspace:*",

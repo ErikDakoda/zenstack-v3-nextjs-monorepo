@@ -1,31 +1,30 @@
-import type { UserRole, SpaceUser } from '@erikdakoda/database';
+import type { Space, SpaceUser, UserRole } from '@erikdakoda/database';
+
+type SessionSpaceUser = Pick<SpaceUser, 'id' | 'createdAt' | 'updatedAt' | 'spaceId' | 'role'> & {
+  space: Space;
+};
 
 declare module 'next-auth' {
   interface User {
     id: string;
-    createdAt: date;
-    updatedAt?: date;
+    createdAt: Date;
+    updatedAt?: Date;
     email: string;
-    emailVerified?: date;
-    name?: string;
-    image?: string;
+    emailVerified?: Date | null;
+    name?: string | null;
+    image?: string | null;
     role: UserRole;
-    activeSpaceId?: string;
-    spaces: Pick<SpaceUser, id | createdAt | updatedAt | spaceId | space | role>[] | [];
+    activeSpaceId?: string | null;
+    spaces: SessionSpaceUser[];
   }
 
   interface Session {
-    user: {
-      id: string;
-      createdAt: date;
-      updatedAt?: date;
-      email: string;
-      emailVerified?: date;
-      name?: string;
-      image?: string;
-      role: UserRole;
-      activeSpaceId?: string;
-      spaces: Pick<SpaceUser, id | createdAt | updatedAt | spaceId | space | role>[] | [];
-    };
+    user: User;
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    sub?: string;
   }
 }

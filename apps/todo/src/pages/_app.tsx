@@ -9,7 +9,7 @@ import { SessionProvider } from 'next-auth/react';
 import type { AppProps } from 'next/app';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Provider as ZenStackHooksProvider } from '@erikdakoda/database/hooks';
+import { QuerySettingsProvider } from '@zenstackhq/tanstack-query/react';
 import { Analytics } from '@vercel/analytics/react';
 import '../tailwind/styles.css';
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -39,14 +39,14 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
     <>
       <SessionProvider session={session}>
         <QueryClientProvider client={queryClient}>
-          <ZenStackHooksProvider value={{ endpoint: '/api/model' }}>
+          <QuerySettingsProvider value={{ endpoint: '/api/model' }}>
             <AppContent>
               <div className="flex-grow h-100 bg-white">
                 <Component {...pageProps} />
                 <ToastContainer position="top-center" autoClose={2000} hideProgressBar={true} />
               </div>
             </AppContent>
-          </ZenStackHooksProvider>
+          </QuerySettingsProvider>
         </QueryClientProvider>
       </SessionProvider>
       <Analytics />

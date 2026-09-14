@@ -1,6 +1,7 @@
-import { NextRequestHandler } from '@erikdakoda/database/server/zenstackServerNext';
-import { getEnhancedPrisma } from '@erikdakoda/database/server/getEnhancedPrisma';
+import { NextRequestHandler, rpcApiHandler } from '@erikdakoda/database/server/zenstackServerNext';
+import { getEnhancedDb } from '@erikdakoda/database/server/getEnhancedDb';
 
 export default NextRequestHandler({
-  getPrisma: (req, res) => getEnhancedPrisma({ req, res }),
+  apiHandler: rpcApiHandler,
+  getClient: (req, res) => getEnhancedDb({ req, res }),
 });

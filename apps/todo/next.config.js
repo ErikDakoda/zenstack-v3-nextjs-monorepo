@@ -1,14 +1,5 @@
-import { PrismaPlugin } from '@prisma/nextjs-monorepo-workaround-plugin';
-
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.plugins = [...config.plugins, new PrismaPlugin()];
-    }
-    return config;
-  },
   reactStrictMode: true,
-  serverExternalPackages: ['@zenstackhq/runtime'],
   transpilePackages: [
     '@erikdakoda/auth',
     '@erikdakoda/auth-ui',
@@ -16,7 +7,6 @@ const nextConfig = {
     '@erikdakoda/todo',
     '@erikdakoda/todo-ui',
   ],
-  //swcMinify: true,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'picsum.photos' },

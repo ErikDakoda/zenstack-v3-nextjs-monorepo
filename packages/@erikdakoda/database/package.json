@@ -6,28 +6,32 @@
   "types": "./index.ts",
   "scripts": {
     "with-env": "dotenv -e ../../../apps/todo/.env --",
-    "prisma:studio": "pnpm with-env prisma studio",
-    "prisma:push": "pnpm with-env prisma db push --skip-generate",
-    "prisma:deploy": "pnpm prisma db push --skip-generate",
-    "zen:generate": "pnpm zenstack generate",
-    "clean": "rm -rf .next/ .turbo/ node_modules/ hooks prisma zenstack zod",
-    "lint": "eslint .",
+    "db:push": "pnpm with-env zen db push --schema ./schema.zmodel",
+    "zen:generate": "zen generate --schema ./schema.zmodel --output ./zenstack --lite true",
+    "clean": "rm -rf .next/ .turbo/ node_modules/ zenstack",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "format": "prettier --write .",
     "ts:check": "tsc",
     "npm:version": "npm version --allow-same-version"
   },
   "dependencies": {
-    "@prisma/client": "6.6.0",
-    "@zenstackhq/runtime": "2.14.2",
-    "@zenstackhq/server": "2.14.2",
-    "db": "link:prisma/client"
+    "@zenstackhq/orm": "3.9.4",
+    "@zenstackhq/plugin-policy": "3.9.4",
+    "@zenstackhq/schema": "3.9.4",
+    "@zenstackhq/server": "3.9.4",
+    "@zenstackhq/tanstack-query": "3.9.4",
+    "bcryptjs": "2.4.3",
+    "kysely": "0.29.4",
+    "pg": "8.23.0"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "15.3.2",
-    "@zenstackhq/tanstack-query": "2.14.2",
+    "@types/bcryptjs": "2.4.6",
+    "@types/pg": "8.11.14",
+    "@zenstackhq/cli": "3.9.4",
     "dotenv-cli": "8.0.0",
     "npm-check": "6.0.1",
-    "prisma": "6.6.0",
-    "zenstack": "2.14.2"
+    "tsx": "4.19.4",
+    "vitest": "5.0.0"
   }
 }

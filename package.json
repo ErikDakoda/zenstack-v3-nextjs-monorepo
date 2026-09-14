@@ -1,17 +1,15 @@
 {
-  "name": "zenstack-prisma-nextjs-monorepo",
+  "name": "zenstack-v3-nextjs-monorepo",
   "version": "0.3.0",
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=18.*"
+    "node": ">=22"
   },
   "packageManager": "pnpm@10.10.0",
   "scripts": {
     "pnpm:install": "pnpm install",
-    "prisma:studio": "pnpm -F @erikdakoda/database prisma:studio",
-    "prisma:push": "pnpm -F @erikdakoda/database prisma:push",
-    "prisma:deploy": "pnpm -F @erikdakoda/database prisma:deploy",
+    "db:push": "pnpm -F @erikdakoda/database db:push",
     "zen:generate": "pnpm -F @erikdakoda/database zen:generate",
     "clean": "turbo run clean && rm -rf node_modules/",
     "build": "turbo run build",
@@ -43,5 +41,13 @@
     "syncpack": "13.0.4",
     "turbo": "2.5.3",
     "typescript": "5.8.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "@typescript-eslint/eslint-plugin": "8.32.1",
+      "@typescript-eslint/parser": "8.32.1",
+      "@typescript-eslint/utils": "8.32.1",
+      "@typescript-eslint/type-utils": "8.32.1"
+    }
   }
 }

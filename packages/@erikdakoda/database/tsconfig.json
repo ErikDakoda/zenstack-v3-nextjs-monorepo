@@ -7,5 +7,5 @@
     }
   },
   "include": ["**/*", "../../../apps/todo/global.d.ts", "../auth/next-auth.d.ts"],
-  "exclude": ["node_modules", "__tests__", "hooks", "zod", "zenstack", "prisma"]
+  "exclude": ["node_modules", "__tests__"]
 }

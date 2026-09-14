@@ -1,14 +1,15 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import { useCurrentUser } from '@erikdakoda/auth-ui/context';
-import { useCreateTodo, useFindManyTodo } from '@erikdakoda/database/hooks/todo';
 import type { List, Space } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import BreadCrumb from '@/components/BreadCrumb';
 import TodoComponent from '@erikdakoda/todo-ui/components/Todo';
 import WithNavBar from '@/components/WithNavBar';
 import type { GetServerSideProps } from 'next';
 import { type ChangeEvent, type KeyboardEvent, useState } from 'react';
-import { getEnhancedPrisma } from '@erikdakoda/database/server/getEnhancedPrisma';
+import { getEnhancedDb } from '@erikdakoda/database/server/getEnhancedDb';
 import { toast } from 'react-toastify';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
 
 type Props = {
   space: Space;
@@ -18,9 +19,10 @@ type Props = {
 export default function TodoList(props: Props) {
   const { user } = useCurrentUser();
   const [title, setTitle] = useState('');
-  const createTodo = useCreateTodo().mutateAsync;
+  const client = useClientQueries(schema);
+  const createTodo = client.todo.useCreate().mutateAsync;
 
-  const { data: todos } = useFindManyTodo({
+  const { data: todos } = client.todo.useFindMany({
     where: { listId: props.list.id },
     include: {
       owner: true,
@@ -38,7 +40,7 @@ export default function TodoList(props: Props) {
         space: { connect: { id: props.space.id } },
         list: { connect: { id: props.list.id } },
       },
-    }).catch((error) => {
+    }).catch((error: Error) => {
       toast.error(error.message);
     });
     setTitle('');
@@ -86,7 +88,7 @@ export default function TodoList(props: Props) {
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async ({ req, res, params }) => {
-  const db = await getEnhancedPrisma({ req, res });
+  const db = await getEnhancedDb({ req, res });
   const space = await db.space.findUnique({
     where: { slug: params!.slug as string },
   });

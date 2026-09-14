@@ -1,20 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { useCreateSpace } from '@erikdakoda/database/hooks';
 import { SpaceUserRole } from '@erikdakoda/database';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import WithNavBar from '@/components/WithNavBar';
 import type { NextPage } from 'next';
 import { useCurrentUser } from '@erikdakoda/auth-ui/context';
 import { useRouter } from 'next/router';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
+
+function isUniqueConstraintError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'info' in err &&
+    (err as { info?: { reason?: string; dbErrorCode?: string } }).info?.reason ===
+      'DB_QUERY_ERROR' &&
+    (err as { info?: { dbErrorCode?: string } }).info?.dbErrorCode === '23505'
+  );
+}
 
 const CreateSpace: NextPage = () => {
   const { user } = useCurrentUser();
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
-
-  const createSpace = useCreateSpace().mutateAsync;
+  const client = useClientQueries(schema);
+  const createSpace = client.space.useCreate().mutateAsync;
   const router = useRouter();
 
   const onSubmit = async (event: FormEvent) => {
@@ -46,14 +58,10 @@ const CreateSpace: NextPage = () => {
           void router.push(`/space/${space.slug}`);
         }
       }, 2000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      if (err.info?.prisma === true) {
-        if (err.info.code === 'P2002') {
-          toast.error('Space slug already in use');
-        } else {
-          toast.error(`Unexpected Prisma error: ${err.info.code}`);
-        }
+      if (isUniqueConstraintError(err)) {
+        toast.error('Space slug already in use');
       } else {
         toast.error(JSON.stringify(err));
       }

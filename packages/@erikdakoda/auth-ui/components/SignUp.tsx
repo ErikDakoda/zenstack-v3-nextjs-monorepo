@@ -1,29 +1,38 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { useCreateUser } from '@erikdakoda/database/hooks/user';
+import { schema } from '@erikdakoda/database/zenstack/schema-lite';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { type FormEvent, useState } from 'react';
 import { toast } from 'react-toastify';
+import { useClientQueries } from '@zenstackhq/tanstack-query/react';
+
+function isUniqueConstraintError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'info' in err &&
+    typeof (err as { info?: { reason?: string; dbErrorCode?: string } }).info?.reason ===
+      'string' &&
+    (err as { info: { reason: string; dbErrorCode?: string } }).info.reason === 'DB_QUERY_ERROR' &&
+    (err as { info: { dbErrorCode?: string } }).info.dbErrorCode === '23505'
+  );
+}
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const createUser = useCreateUser().mutateAsync;
+  const client = useClientQueries(schema);
+  const signUpMutation = client.$procs.signUp.useMutation();
 
   async function onSignUp(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     try {
-      await createUser({ data: { email, password } });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
+      await signUpMutation.mutateAsync({ args: { email, password } });
+    } catch (err: unknown) {
       console.error(err);
-      if (err.info?.prisma === true) {
-        if (err.info.code === 'P2002') {
-          toast.error('User already exists');
-        } else {
-          toast.error(`Unexpected Prisma error: ${err.info.code}`);
-        }
+      if (isUniqueConstraintError(err)) {
+        toast.error('User already exists');
       } else {
         toast.error(`Error occurred: ${JSON.stringify(err)}`);
       }
