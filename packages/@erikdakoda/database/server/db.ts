@@ -14,7 +14,7 @@ function getConnectionString(): string {
 
 const logQueries = process.env.LOG_ZEN_QUERY === 'true' ? (['query'] as const) : [];
 
-const procedures = {
+export const procedures = {
   signUp: async ({
     client,
     args,

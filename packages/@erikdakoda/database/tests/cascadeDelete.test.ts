@@ -12,8 +12,9 @@ import {
   type Driver,
 } from 'kysely';
 import { Pool } from 'pg';
-import { ZenStackClient } from '@zenstackhq/orm';
+import { ZenStackClient, type ClientContract } from '@zenstackhq/orm';
 import { schema } from '../zenstack/schema';
+import { procedures } from '../server/db';
 
 const PROBE_PARENT_ID = 'probe_parent_id';
 
@@ -73,10 +74,10 @@ function createCaptureDialect(parentTable?: string): CaptureDialect {
   return { dialect, captured };
 }
 
-type DbClient = ZenStackClient<typeof schema>;
+type DbClient = ClientContract<typeof schema>;
 
 function createDbClient(dialect: Dialect): DbClient {
-  return new ZenStackClient(schema, { dialect });
+  return new ZenStackClient(schema, { dialect, procedures });
 }
 
 describe('ZenStack delegate cascade delete (reproduction)', () => {
