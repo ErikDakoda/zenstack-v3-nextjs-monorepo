@@ -1,5 +1,6 @@
 import "user";
 import "space";
+import "../../todo/comment";
 
 model OwnedItem {
     id          String    @id @default(cuid())
@@ -15,6 +16,8 @@ model OwnedItem {
 
     ownedItemType String
     @@delegate(ownedItemType)
+
+    commentsAsSubject Comment[] @relation("CommentSubject")
 
     // require login
     @@deny('all', auth() == null)

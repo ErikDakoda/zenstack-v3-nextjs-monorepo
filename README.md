@@ -96,6 +96,23 @@ In this fictitious app, users can be invited to workspaces where they can collab
 
 6. Visit the app at [http://localhost:3000](http://localhost:3000)
 
+## Reproduction: ZenStack delegate cascade delete
+
+Unpatched ZenStack ORM 3.9.4 has two delegate cascade-delete walker bugs:
+
+1. **Infinite recursion** on base-level cascade edges (for example `OwnedItem.commentsAsSubject` / `Comment.subject`, the same shape as uvilo-mono's `Factoid.provenance`).
+2. **Concrete-child cascades not simulated** (for example deleting a `List` orphans the `Todo` `OwnedItem` base row while the DB removes the concrete `Todo` row).
+
+An upstream fix is in progress on [ErikDakoda/zenstack `fix/delegate-cascade-delete-walker`](https://github.com/ErikDakoda/zenstack/tree/fix/delegate-cascade-delete-walker) (no separate upstream issue yet; the PR will be the first report).
+
+Run the regression tests:
+
+```bash
+pnpm -F @erikdakoda/database test
+```
+
+On branch `Zen_3.9.4` (and `main` after merge), the DB-less case fails with `RangeError: Maximum call stack size exceeded`. Branch `Zen_3.9.4-cascade-delete-fix` applies a pnpm patch to `@zenstackhq/orm@3.9.4` and the same command passes.
+
 ## Gotchas
 
 While converting this project to ZenStack v3 in a monorepo, I learned the following:

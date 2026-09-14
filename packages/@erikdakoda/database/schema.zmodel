@@ -1,6 +1,7 @@
 import "../auth/models/user"
 import "../todo/list"
 import "../todo/todo"
+import "../todo/comment"
 
 datasource db {
     provider = "postgresql"

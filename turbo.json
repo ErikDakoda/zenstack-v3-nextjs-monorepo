@@ -27,6 +27,7 @@
     "lint": {},
     "format": {},
     "ts:check": {},
+    "test": {},
     "npm:version": {}
   }
 }

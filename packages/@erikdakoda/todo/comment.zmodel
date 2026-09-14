@@ -1,0 +1,12 @@
+import "../auth/models/ownedItem"
+
+/**
+ * Delegate child with an optional cascade FK back to OwnedItem (same shape as Factoid.provenance).
+ */
+model Comment extends OwnedItem {
+    body      String @length(1, 1000)
+    subjectId String?
+    subject   OwnedItem? @relation("CommentSubject", fields: [subjectId], references: [id], onDelete: Cascade)
+
+    @@index([subjectId])
+}

@@ -20,6 +20,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "ts:check": "turbo run ts:check",
+    "test": "turbo run test",
     "npm:version": "turbo run npm:version -- 0.3.0",
     "syncpack:list": "syncpack list-mismatches",
     "syncpack:fix": "syncpack fix-mismatches",

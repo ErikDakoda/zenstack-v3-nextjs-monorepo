@@ -12,6 +12,7 @@
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "format": "prettier --write .",
     "ts:check": "tsc",
+    "test": "vitest run",
     "npm:version": "npm version --allow-same-version"
   },
   "dependencies": {
@@ -32,6 +33,6 @@
     "dotenv-cli": "8.0.0",
     "npm-check": "6.0.1",
     "tsx": "4.19.4",
-    "vitest": "5.0.0"
+    "vitest": "4.1.7"
   }
 }
