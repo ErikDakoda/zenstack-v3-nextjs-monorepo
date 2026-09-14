@@ -1,0 +1,154 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 1140ab313bb4b5925c542b01580ea513aa8d4b63..1f61745d1416cf7a576a834bb75a331e0f47ea16 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -5308,37 +5308,65 @@ var BaseOperationHandler = class {
+ 	normalizeRelationManipulationInput(model, data) {
+ 		return (0, _zenstackhq_common_helpers.enumerate)(data).map((item) => flattenCompoundUniqueFilters(this.schema, model, item));
+ 	}
+-	async delete(kysely$28, model, where, limit, filterModel, fieldsToReturn) {
++	async delete(kysely$28, model, where, limit, filterModel, fieldsToReturn, visitedIds) {
+ 		filterModel ??= model;
+ 		const modelDef = this.requireModel(model);
++		visitedIds ??= new Set();
++		const filterModelDef = this.requireModel(filterModel);
++		const parentRows = await this.read(kysely$28, filterModel, {
++			where,
++			select: this.makeIdSelect(filterModel),
++			...limit !== void 0 ? { take: limit } : {}
++		});
++		if (parentRows.length === 0) return { numAffectedRows: 0n };
++		const parentIdFields = filterModelDef.idFields;
++		const parentWhere = parentIdFields.length === 1 ? { [parentIdFields[0]]: { in: parentRows.map((row) => row[parentIdFields[0]]) } } : { OR: parentRows.map((row) => Object.fromEntries(parentIdFields.map((f) => [f, row[f]]))) };
+ 		if (modelDef.baseModel) {
+ 			if (limit !== void 0) throw createNotSupportedError("Deleting with a limit is not supported for polymorphic models");
+-			return this.processBaseModelDelete(kysely$28, modelDef.baseModel, where, limit, filterModel);
++			await this.processDelegateRelationDelete(kysely$28, modelDef, parentWhere, limit, visitedIds);
++			return this.processBaseModelDelete(kysely$28, modelDef.baseModel, parentWhere, limit, filterModel, visitedIds);
+ 		}
+ 		fieldsToReturn = fieldsToReturn ?? requireIdFields(this.schema, model);
+ 		let needIdFilter = false;
+ 		if (limit !== void 0 && !this.dialect.supportsDeleteWithLimit) needIdFilter = true;
+ 		if (modelDef.isDelegate || modelDef.baseModel) needIdFilter = true;
+ 		const deleteFilter = needIdFilter ? (eb) => eb(eb.refTuple(...this.buildIdFieldRefs(kysely$28, model)), "in", eb.selectFrom(this.dialect.buildSelectModel(filterModel, filterModel).where(() => this.dialect.buildFilter(filterModel, filterModel, where)).select(this.buildIdFieldRefs(kysely$28, filterModel)).$if(limit !== void 0, (qb) => qb.limit(limit)).as("$sub")).selectAll()) : () => this.dialect.buildFilter(model, model, where);
+-		await this.processDelegateRelationDelete(kysely$28, modelDef, where, limit);
++		await this.processDelegateRelationDelete(kysely$28, modelDef, parentWhere, limit, visitedIds);
+ 		const query = kysely$28.deleteFrom(model).where(deleteFilter).$if(this.dialect.supportsReturning, (qb) => qb.returning(fieldsToReturn)).$if(limit !== void 0 && this.dialect.supportsDeleteWithLimit, (qb) => qb.limit(limit)).modifyEnd(this.makeContextComment({
+ 			model,
+ 			operation: "delete"
+ 		}));
+ 		return this.executeQuery(kysely$28, query, "delete");
+ 	}
+-	async processDelegateRelationDelete(kysely$29, modelDef, where, limit) {
++	async processDelegateRelationDelete(kysely$29, modelDef, parentWhere, limit, visitedIds) {
++		visitedIds ??= new Set();
+ 		for (const fieldDef of Object.values(modelDef.fields)) if (fieldDef.relation && fieldDef.relation.opposite) {
+ 			const oppositeModelDef = this.requireModel(fieldDef.type);
+ 			const oppositeRelation = this.requireField(fieldDef.type, fieldDef.relation.opposite);
+ 			if (oppositeModelDef.baseModel && oppositeRelation.relation?.onDelete === "Cascade") {
+ 				if (limit !== void 0) throw createNotSupportedError("Deleting with a limit is not supported for polymorphic models");
+-				await this.delete(kysely$29, fieldDef.type, { [fieldDef.relation.opposite]: where }, void 0);
++				const childModel = fieldDef.type;
++				const childRows = await this.read(kysely$29, childModel, {
++					where: { [fieldDef.relation.opposite]: parentWhere },
++					select: this.makeIdSelect(childModel)
++				});
++				if (childRows.length === 0) continue;
++				const idFields = this.requireModel(childModel).idFields;
++				const idsToDelete = [];
++				for (const row of childRows) {
++					const visitedKey = `${childModel}\0${idFields.map((f) => String(row[f])).join("\0")}`;
++					if (visitedIds.has(visitedKey)) continue;
++					visitedIds.add(visitedKey);
++					idsToDelete.push(row);
++				}
++				if (idsToDelete.length === 0) continue;
++				const childWhere = idFields.length === 1 ? { [idFields[0]]: { in: idsToDelete.map((row) => row[idFields[0]]) } } : { OR: idsToDelete.map((row) => Object.fromEntries(idFields.map((f) => [f, row[f]]))) };
++				await this.delete(kysely$29, childModel, childWhere, void 0, void 0, void 0, visitedIds);
+ 			}
+ 		}
+ 	}
+-	async processBaseModelDelete(kysely$30, model, where, limit, filterModel) {
+-		return this.delete(kysely$30, model, where, limit, filterModel);
++	async processBaseModelDelete(kysely$30, model, where, limit, filterModel, visitedIds) {
++		return this.delete(kysely$30, model, where, limit, filterModel, void 0, visitedIds);
+ 	}
+ 	makeIdSelect(model) {
+ 		return this.requireModel(model).idFields.reduce((acc, f) => {
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 5d9c2dc68556b6d7ae8a494aab3f1f5d7f71cb89..9fb8e028fe9695ced749164a856107decaa56b75 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -5271,37 +5271,65 @@ var BaseOperationHandler = class {
+ 	normalizeRelationManipulationInput(model, data) {
+ 		return enumerate(data).map((item) => flattenCompoundUniqueFilters(this.schema, model, item));
+ 	}
+-	async delete(kysely, model, where, limit, filterModel, fieldsToReturn) {
++	async delete(kysely, model, where, limit, filterModel, fieldsToReturn, visitedIds) {
+ 		filterModel ??= model;
+ 		const modelDef = this.requireModel(model);
++		visitedIds ??= new Set();
++		const filterModelDef = this.requireModel(filterModel);
++		const parentRows = await this.read(kysely, filterModel, {
++			where,
++			select: this.makeIdSelect(filterModel),
++			...limit !== void 0 ? { take: limit } : {}
++		});
++		if (parentRows.length === 0) return { numAffectedRows: 0n };
++		const parentIdFields = filterModelDef.idFields;
++		const parentWhere = parentIdFields.length === 1 ? { [parentIdFields[0]]: { in: parentRows.map((row) => row[parentIdFields[0]]) } } : { OR: parentRows.map((row) => Object.fromEntries(parentIdFields.map((f) => [f, row[f]]))) };
+ 		if (modelDef.baseModel) {
+ 			if (limit !== void 0) throw createNotSupportedError("Deleting with a limit is not supported for polymorphic models");
+-			return this.processBaseModelDelete(kysely, modelDef.baseModel, where, limit, filterModel);
++			await this.processDelegateRelationDelete(kysely, modelDef, parentWhere, limit, visitedIds);
++			return this.processBaseModelDelete(kysely, modelDef.baseModel, parentWhere, limit, filterModel, visitedIds);
+ 		}
+ 		fieldsToReturn = fieldsToReturn ?? requireIdFields(this.schema, model);
+ 		let needIdFilter = false;
+ 		if (limit !== void 0 && !this.dialect.supportsDeleteWithLimit) needIdFilter = true;
+ 		if (modelDef.isDelegate || modelDef.baseModel) needIdFilter = true;
+ 		const deleteFilter = needIdFilter ? (eb) => eb(eb.refTuple(...this.buildIdFieldRefs(kysely, model)), "in", eb.selectFrom(this.dialect.buildSelectModel(filterModel, filterModel).where(() => this.dialect.buildFilter(filterModel, filterModel, where)).select(this.buildIdFieldRefs(kysely, filterModel)).$if(limit !== void 0, (qb) => qb.limit(limit)).as("$sub")).selectAll()) : () => this.dialect.buildFilter(model, model, where);
+-		await this.processDelegateRelationDelete(kysely, modelDef, where, limit);
++		await this.processDelegateRelationDelete(kysely, modelDef, parentWhere, limit, visitedIds);
+ 		const query = kysely.deleteFrom(model).where(deleteFilter).$if(this.dialect.supportsReturning, (qb) => qb.returning(fieldsToReturn)).$if(limit !== void 0 && this.dialect.supportsDeleteWithLimit, (qb) => qb.limit(limit)).modifyEnd(this.makeContextComment({
+ 			model,
+ 			operation: "delete"
+ 		}));
+ 		return this.executeQuery(kysely, query, "delete");
+ 	}
+-	async processDelegateRelationDelete(kysely, modelDef, where, limit) {
++	async processDelegateRelationDelete(kysely, modelDef, parentWhere, limit, visitedIds) {
++		visitedIds ??= new Set();
+ 		for (const fieldDef of Object.values(modelDef.fields)) if (fieldDef.relation && fieldDef.relation.opposite) {
+ 			const oppositeModelDef = this.requireModel(fieldDef.type);
+ 			const oppositeRelation = this.requireField(fieldDef.type, fieldDef.relation.opposite);
+ 			if (oppositeModelDef.baseModel && oppositeRelation.relation?.onDelete === "Cascade") {
+ 				if (limit !== void 0) throw createNotSupportedError("Deleting with a limit is not supported for polymorphic models");
+-				await this.delete(kysely, fieldDef.type, { [fieldDef.relation.opposite]: where }, void 0);
++				const childModel = fieldDef.type;
++				const childRows = await this.read(kysely, childModel, {
++					where: { [fieldDef.relation.opposite]: parentWhere },
++					select: this.makeIdSelect(childModel)
++				});
++				if (childRows.length === 0) continue;
++				const idFields = this.requireModel(childModel).idFields;
++				const idsToDelete = [];
++				for (const row of childRows) {
++					const visitedKey = `${childModel}\0${idFields.map((f) => String(row[f])).join("\0")}`;
++					if (visitedIds.has(visitedKey)) continue;
++					visitedIds.add(visitedKey);
++					idsToDelete.push(row);
++				}
++				if (idsToDelete.length === 0) continue;
++				const childWhere = idFields.length === 1 ? { [idFields[0]]: { in: idsToDelete.map((row) => row[idFields[0]]) } } : { OR: idsToDelete.map((row) => Object.fromEntries(idFields.map((f) => [f, row[f]]))) };
++				await this.delete(kysely, childModel, childWhere, void 0, void 0, void 0, visitedIds);
+ 			}
+ 		}
+ 	}
+-	async processBaseModelDelete(kysely, model, where, limit, filterModel) {
+-		return this.delete(kysely, model, where, limit, filterModel);
++	async processBaseModelDelete(kysely, model, where, limit, filterModel, visitedIds) {
++		return this.delete(kysely, model, where, limit, filterModel, void 0, visitedIds);
+ 	}
+ 	makeIdSelect(model) {
+ 		return this.requireModel(model).idFields.reduce((acc, f) => {

@@ -113,6 +113,10 @@ pnpm -F @erikdakoda/database test
 
 On branch `Zen_3.9.4` (and `main` after merge), the DB-less case fails with `RangeError: Maximum call stack size exceeded`. Branch `Zen_3.9.4-cascade-delete-fix` applies a pnpm patch to `@zenstackhq/orm@3.9.4` and the same command passes.
 
+### Fix
+
+Branch `Zen_3.9.4-cascade-delete-fix` registers `patches/@zenstackhq__orm@3.9.4.patch` under `patchedDependencies` in `pnpm-workspace.yaml`. That patch is the compiled form of the upstream fix on [ErikDakoda/zenstack `fix/delegate-cascade-delete-walker`](https://github.com/ErikDakoda/zenstack/tree/fix/delegate-cascade-delete-walker).
+
 ## Gotchas
 
 While converting this project to ZenStack v3 in a monorepo, I learned the following:

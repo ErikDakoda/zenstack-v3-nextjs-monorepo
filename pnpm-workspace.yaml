@@ -5,3 +5,5 @@ packages:
 onlyBuiltDependencies:
   - esbuild
   - sharp
+patchedDependencies:
+  '@zenstackhq/orm@3.9.4': patches/@zenstackhq__orm@3.9.4.patch

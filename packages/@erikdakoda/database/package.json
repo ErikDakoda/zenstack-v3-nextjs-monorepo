@@ -12,7 +12,7 @@
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint .",
     "format": "prettier --write .",
     "ts:check": "tsc",
-    "test": "vitest run",
+    "test": "pnpm with-env vitest run",
     "npm:version": "npm version --allow-same-version"
   },
   "dependencies": {

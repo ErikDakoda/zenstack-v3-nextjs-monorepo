@@ -10,6 +10,11 @@ overrides:
   '@typescript-eslint/utils': 8.32.1
   '@typescript-eslint/type-utils': 8.32.1
 
+patchedDependencies:
+  '@zenstackhq/orm@3.9.4':
+    hash: 79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586
+    path: patches/@zenstackhq__orm@3.9.4.patch
+
 importers:
 
   .:
@@ -280,7 +285,7 @@ importers:
     dependencies:
       '@zenstackhq/orm':
         specifier: 3.9.4
-        version: 3.9.4(pg@8.23.0)(zod@4.6.5)
+        version: 3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)
       '@zenstackhq/plugin-policy':
         specifier: 3.9.4
         version: 3.9.4(kysely@0.29.4)(pg@8.23.0)(zod@4.6.5)
@@ -6275,7 +6280,7 @@ snapshots:
       '@hono/node-server': 1.19.17(hono@4.13.7)
       '@zenstackhq/common-helpers': 3.9.4
       '@zenstackhq/language': 3.9.4
-      '@zenstackhq/orm': 3.9.4(pg@8.23.0)(zod@4.6.5)
+      '@zenstackhq/orm': 3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)
       '@zenstackhq/plugin-policy': 3.9.4(kysely@0.29.4)(pg@8.23.0)(zod@4.6.5)
       '@zenstackhq/schema': 3.9.4
       '@zenstackhq/sdk': 3.9.4
@@ -6317,7 +6322,7 @@ snapshots:
   '@zenstackhq/client-helpers@3.9.4(pg@8.23.0)(zod@4.6.5)':
     dependencies:
       '@zenstackhq/common-helpers': 3.9.4
-      '@zenstackhq/orm': 3.9.4(pg@8.23.0)(zod@4.6.5)
+      '@zenstackhq/orm': 3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)
       '@zenstackhq/schema': 3.9.4
       decimal.js: 10.4.3
       superjson: 2.2.6
@@ -6338,7 +6343,7 @@ snapshots:
       ts-pattern: 5.9.0
       vscode-languageserver: 9.0.1
 
-  '@zenstackhq/orm@3.9.4(pg@8.23.0)(zod@4.6.5)':
+  '@zenstackhq/orm@3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)':
     dependencies:
       '@paralleldrive/cuid2': 2.2.2
       '@zenstackhq/common-helpers': 3.9.4
@@ -6362,7 +6367,7 @@ snapshots:
   '@zenstackhq/plugin-policy@3.9.4(kysely@0.29.4)(pg@8.23.0)(zod@4.6.5)':
     dependencies:
       '@zenstackhq/common-helpers': 3.9.4
-      '@zenstackhq/orm': 3.9.4(pg@8.23.0)(zod@4.6.5)
+      '@zenstackhq/orm': 3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)
       kysely: 0.29.4
       ts-pattern: 5.9.0
     transitivePeerDependencies:
@@ -6387,7 +6392,7 @@ snapshots:
   '@zenstackhq/server@3.9.4(hono@4.13.7)(next@15.3.8(@babel/core@7.27.1)(@opentelemetry/api@1.4.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(pg@8.23.0)(zod@4.6.5)':
     dependencies:
       '@zenstackhq/common-helpers': 3.9.4
-      '@zenstackhq/orm': 3.9.4(pg@8.23.0)(zod@4.6.5)
+      '@zenstackhq/orm': 3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)
       decimal.js: 10.4.3
       openapi-types: 12.1.3
       superjson: 2.2.6
@@ -6409,7 +6414,7 @@ snapshots:
     dependencies:
       '@zenstackhq/client-helpers': 3.9.4(pg@8.23.0)(zod@4.6.5)
       '@zenstackhq/common-helpers': 3.9.4
-      '@zenstackhq/orm': 3.9.4(pg@8.23.0)(zod@4.6.5)
+      '@zenstackhq/orm': 3.9.4(patch_hash=79715ebd1f0ba2b9e40be376158682b6462e0e8dbc39b1c8427f9dcd61368586)(pg@8.23.0)(zod@4.6.5)
       '@zenstackhq/schema': 3.9.4
       decimal.js: 10.4.3
     optionalDependencies:
